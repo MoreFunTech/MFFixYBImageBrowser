@@ -5,7 +5,7 @@ Pod::Spec.new do |s|
 
   s.name         = "MFFixYBImageBrowser"
 
-  s.version      = "3.1.0"
+  s.version      = "3.1.1"
 
   s.summary      = "iOS image browser / iOS 图片浏览器"
 
@@ -43,12 +43,12 @@ Pod::Spec.new do |s|
   s.subspec "Video" do |video|
     video.source_files = "Video/*.{h,m}"
     video.resources    = "Video/YBImageBrowserVideo.bundle"
-    video.dependency 'YBImageBrowser/Core'
+    video.dependency 'MFFixYBImageBrowser/Core'
   end
   s.subspec "VideoNOSD" do |video|
     video.source_files = "Video/*.{h,m}"
     video.resources    = "Video/YBImageBrowserVideo.bundle"
-    video.dependency 'YBImageBrowser/NOSD'
+    video.dependency 'MFFixYBImageBrowser/NOSD'
   end
 
 end
