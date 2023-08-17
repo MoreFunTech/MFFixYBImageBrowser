@@ -1,9 +1,9 @@
-platform:ios, '8.0'
+platform:ios, '10.0'
 target ‘YBImageBrowserDemo’ do
 use_frameworks!
 
 
-pod 'SDWebImage', '>= 5.0.0'
+pod 'SDWebImage'
 pod 'YYImage'
 #pod 'YYImage/WebP'
 

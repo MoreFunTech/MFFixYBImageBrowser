@@ -25,6 +25,9 @@ typedef UIImage * _Nullable (^YBIBImageBlock)(void);
 /// 修改 NSURLRequest 并返回的闭包
 typedef NSURLRequest * _Nullable (^YBIBRequestModifierBlock)(YBIBImageData *imageData, NSURLRequest *request);
 
+/// QC私有桶解密
+typedef NSString * _Nullable (^YBIBRequestQcDecodeBlock)(NSString *originUrlStr);
+
 /// 根据图片逻辑像素和 scale 判断是否需要预解码的闭包
 typedef BOOL (^YBIBPreDecodeDecisionBlock)(YBIBImageData *imageData, CGSize imageSize, CGFloat scale);
 
@@ -60,6 +63,10 @@ typedef void (^YBIBImageScrollViewStatusBlock)(YBIBImageData *imageData, UIScrol
 
 /// 修改 NSURLRequest 并返回
 @property (nonatomic, copy, nullable) YBIBRequestModifierBlock requestModifier;
+
+/// qc私有桶解密
+@property (nonatomic, copy, nullable) YBIBRequestQcDecodeBlock qcDecoder;
+
 
 /// 相册图片资源
 @property (nonatomic, strong, nullable) PHAsset *imagePHAsset;

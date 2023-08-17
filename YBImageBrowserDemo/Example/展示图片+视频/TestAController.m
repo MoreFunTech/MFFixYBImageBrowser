@@ -63,6 +63,9 @@
             YBIBImageData *data = [YBIBImageData new];
             data.imageURL = [NSURL URLWithString:obj];
             data.projectiveView = [self viewAtIndex:idx];
+            data.qcDecoder = ^NSString * _Nullable(NSString * _Nonnull originUrlStr) {
+                return @"https://img0.baidu.com/it/u=981218435,2998857702&fm=253&app=120&size=w931&n=0&f=JPEG&fmt=auto?sec=1677862800&t=dc04b40100f4414c255adc8208bdd7c0";
+            };
             [datas addObject:data];
             
         } else {

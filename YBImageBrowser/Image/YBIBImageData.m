@@ -16,6 +16,7 @@
 #import "YBIBSentinel.h"
 #import "YBIBCopywriter.h"
 #import <AssetsLibrary/AssetsLibrary.h>
+#import <SDWebImage/SDWebImage.h>
 
 extern CGImageRef YYCGImageCreateDecodedCopy(CGImageRef imageRef, BOOL decodeForDisplay);
 
@@ -261,54 +262,116 @@ static dispatch_queue_t YBIBImageProcessingQueue(void) {
         })
     }];
 }
+
 - (void)loadURL_download {
     if (_freezing) return;
     if (!self.imageURL || self.imageURL.absoluteString.length == 0) return;
     
-    YBImageDecodeDecision decision = [self defaultDecodeDecision];
-    
-    self.loadingStatus = YBIBImageLoadingStatusDownloading;
     __weak typeof(self) wSelf = self;
-    _downloadToken = [self.yb_webImageMediator() yb_downloadImageWithURL:self.imageURL requestModifier:^NSURLRequest * _Nullable(NSURLRequest * _Nonnull request) {
-        return self.requestModifier ? self.requestModifier(self, request) : request;
-    } progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+    [SDWebImageDownloader.sharedDownloader downloadImageWithURL:self.imageURL options:SDWebImageDownloaderHighPriority progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
         CGFloat progress = receivedSize * 1.0 / expectedSize ?: 0;
         YBIB_DISPATCH_ASYNC_MAIN(^{
             __strong typeof(wSelf) self = wSelf;
             if (!self) return;
             [self.delegate yb_imageData:self downloadProgress:progress];
         })
-    } success:^(NSData * _Nullable imageData, BOOL finished) {
+    } completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, BOOL finished) {
         if (!finished) return;
         
-        YBIB_DISPATCH_ASYNC(YBIBImageProcessingQueue(), ^{
-            __strong typeof(wSelf) self = wSelf;
-            if (!self) return;
-            if (self->_freezing) {
-                self.loadingStatus = YBIBImageLoadingStatusNone;
-                return;
-            }
-            YBImage *image = [YBImage imageWithData:imageData scale:UIScreen.mainScreen.scale decodeDecision:decision];
-            YBIB_DISPATCH_ASYNC_MAIN(^{
+        if (error == nil) {
+            YBIB_DISPATCH_ASYNC(YBIBImageProcessingQueue(), ^{
                 __strong typeof(wSelf) self = wSelf;
                 if (!self) return;
-                [self.yb_webImageMediator() yb_storeToDiskWithImageData:imageData forKey:self.imageURL];
-                self.loadingStatus = YBIBImageLoadingStatusNone;
-                if (image) {
-                    [self setOriginImageAndLoadWithImage:image];
-                } else {
-                    [self.delegate yb_imageIsInvalidForData:self];
+                if (self->_freezing) {
+                    self.loadingStatus = YBIBImageLoadingStatusNone;
+                    return;
                 }
+                YBImageDecodeDecision decision = [self defaultDecodeDecision];
+                YBImage *image = [YBImage imageWithData:data scale:UIScreen.mainScreen.scale decodeDecision:decision];
+                [SDImageCache.sharedImageCache storeImageDataToDisk:data forKey:self.imageURL.absoluteString];
+                YBIB_DISPATCH_ASYNC_MAIN(^{
+                    __strong typeof(wSelf) self = wSelf;
+                    if (!self) return;
+                    [self.yb_webImageMediator() yb_storeToDiskWithImageData:data forKey:self.imageURL];
+                    self.loadingStatus = YBIBImageLoadingStatusNone;
+                    if (image) {
+                        [self setOriginImageAndLoadWithImage:image];
+                    } else {
+                        [self.delegate yb_imageIsInvalidForData:self];
+                    }
+                })
             })
-        })
-    } failed:^(NSError * _Nullable error, BOOL finished) {
-        if (!finished) return;
-        __strong typeof(wSelf) self = wSelf;
-        if (!self) return;
+        } else {
+            if (!finished) return;
+            __strong typeof(wSelf) self = wSelf;
+            if (!self) return;
+            [self loadURL_downloadFailure];
+        }
+    }];
+    
+}
+
+
+- (void)loadURL_downloadFailure {
+    if (!self.qcDecoder) {
         self.loadingStatus = YBIBImageLoadingStatusNone;
         [self.delegate yb_imageDownloadFailedForData:self];
-    }];
+    } else {
+        NSString *newUrlStr = self.qcDecoder(self.imageURL.absoluteString);
+        [self loadURL_downloadFailureWithQcDecode:newUrlStr];
+    }
 }
+
+- (void)loadURL_downloadFailureWithQcDecode:(NSString *)newUrlStr {
+    
+    if (_freezing) return;
+    if (!newUrlStr || newUrlStr.length == 0) return;
+    
+    __weak typeof(self) wSelf = self;
+    [SDWebImageDownloader.sharedDownloader downloadImageWithURL:[NSURL URLWithString:newUrlStr] options:SDWebImageDownloaderHighPriority progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
+        CGFloat progress = receivedSize * 1.0 / expectedSize ?: 0;
+        YBIB_DISPATCH_ASYNC_MAIN(^{
+            __strong typeof(wSelf) self = wSelf;
+            if (!self) return;
+            [self.delegate yb_imageData:self downloadProgress:progress];
+        })
+    } completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, BOOL finished) {
+        __strong typeof(wSelf) self = wSelf;
+        if (!finished) return;
+        
+        if (error == nil) {
+            YBIB_DISPATCH_ASYNC(YBIBImageProcessingQueue(), ^{
+                if (self->_freezing) {
+                    self.loadingStatus = YBIBImageLoadingStatusNone;
+                    return;
+                }
+                YBImageDecodeDecision decision = [self defaultDecodeDecision];
+                YBImage *image = [YBImage imageWithData:data scale:UIScreen.mainScreen.scale decodeDecision:decision];
+                YBIB_DISPATCH_ASYNC_MAIN(^{
+                    __strong typeof(wSelf) self = wSelf;
+                    if (!self) return;
+                    [self.yb_webImageMediator() yb_storeToDiskWithImageData:data forKey:self.imageURL];
+                    self.loadingStatus = YBIBImageLoadingStatusNone;
+                    if (image) {
+                        [self setOriginImageAndLoadWithImage:image];
+                    } else {
+                        [self.delegate yb_imageIsInvalidForData:self];
+                    }
+                })
+            })
+        } else {
+            if (!finished) return;
+            __strong typeof(wSelf) self = wSelf;
+            if (!self) return;
+            self.loadingStatus = YBIBImageLoadingStatusNone;
+            [self.delegate yb_imageDownloadFailedForData:self];
+        }
+        
+    }];
+    
+}
+
+
 
 - (void)loadPHAsset {
     if (_freezing) return;
