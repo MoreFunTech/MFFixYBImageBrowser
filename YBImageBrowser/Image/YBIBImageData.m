@@ -282,6 +282,8 @@ static dispatch_queue_t YBIBImageProcessingQueue(void) {
         if (!finished) return;
         
         YBIB_DISPATCH_ASYNC(YBIBImageProcessingQueue(), ^{
+            __strong typeof(wSelf) self = wSelf;
+            if (!self) return;
             if (self->_freezing) {
                 self.loadingStatus = YBIBImageLoadingStatusNone;
                 return;
