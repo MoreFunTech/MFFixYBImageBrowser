@@ -276,11 +276,15 @@ static dispatch_queue_t YBIBImageProcessingQueue(void) {
             [self.delegate yb_imageData:self downloadProgress:progress];
         })
     } completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, BOOL finished) {
-        __strong typeof(wSelf) self = wSelf;
         if (!finished) return;
+        __strong typeof(wSelf) self = wSelf;
+        if (!self) return;
         
         if (error == nil) {
             YBIB_DISPATCH_ASYNC(YBIBImageProcessingQueue(), ^{
+                __strong typeof(wSelf) self = wSelf;
+                if (!self) return;
+                
                 if (self->_freezing) {
                     self.loadingStatus = YBIBImageLoadingStatusNone;
                     return;
