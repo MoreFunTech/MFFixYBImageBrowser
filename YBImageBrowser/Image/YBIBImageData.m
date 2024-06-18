@@ -333,48 +333,48 @@ static dispatch_queue_t YBIBImageProcessingQueue(void) {
     __weak typeof(self) wSelf = self;
     [SDWebImageDownloader.sharedDownloader downloadImageWithURL:[NSURL URLWithString:newUrlStr] options:SDWebImageDownloaderHighPriority progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
         CGFloat progress = receivedSize * 1.0 / expectedSize ?: 0;
+        __strong typeof(wSelf) strongSelf = wSelf;
+        __weak typeof(strongSelf) wSelf1 = strongSelf;
         YBIB_DISPATCH_ASYNC_MAIN(^{
-            __strong typeof(wSelf) self = wSelf;
-            if (!self) return;
-            [self.delegate yb_imageData:self downloadProgress:progress];
+            __strong typeof(wSelf1) strongSelf1 = wSelf1;
+            if (!strongSelf1) return;
+            [strongSelf1.delegate yb_imageData:strongSelf1 downloadProgress:progress];
         })
     } completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, BOOL finished) {
-        __strong typeof(wSelf) self = wSelf;
+        __strong typeof(wSelf) strongSelf = wSelf;
         if (!finished) return;
         
         if (error == nil) {
+            __weak typeof(strongSelf) wSelf1 = strongSelf;
             YBIB_DISPATCH_ASYNC(YBIBImageProcessingQueue(), ^{
-                if (self->_freezing) {
-                    self.loadingStatus = YBIBImageLoadingStatusNone;
+                __strong typeof(wSelf1) strongSelf1 = wSelf1;
+                if (strongSelf1->_freezing) {
+                    strongSelf1.loadingStatus = YBIBImageLoadingStatusNone;
                     return;
                 }
-                YBImageDecodeDecision decision = [self defaultDecodeDecision];
+                YBImageDecodeDecision decision = [strongSelf1 defaultDecodeDecision];
                 YBImage *image = [YBImage imageWithData:data scale:UIScreen.mainScreen.scale decodeDecision:decision];
+                __weak typeof(strongSelf1) wSelf2 = strongSelf1;
                 YBIB_DISPATCH_ASYNC_MAIN(^{
-                    __strong typeof(wSelf) self = wSelf;
-                    if (!self) return;
-                    [self.yb_webImageMediator() yb_storeToDiskWithImageData:data forKey:self.imageURL];
-                    self.loadingStatus = YBIBImageLoadingStatusNone;
+                    __strong typeof(wSelf2) strongSelf2 = wSelf2;
+                    if (!strongSelf2) return;
+                    [strongSelf2.yb_webImageMediator() yb_storeToDiskWithImageData:data forKey:strongSelf2.imageURL];
+                    strongSelf2.loadingStatus = YBIBImageLoadingStatusNone;
                     if (image) {
-                        [self setOriginImageAndLoadWithImage:image];
+                        [strongSelf2 setOriginImageAndLoadWithImage:image];
                     } else {
-                        [self.delegate yb_imageIsInvalidForData:self];
+                        [strongSelf2.delegate yb_imageIsInvalidForData:strongSelf2];
                     }
                 })
             })
         } else {
             if (!finished) return;
-            __strong typeof(wSelf) self = wSelf;
-            if (!self) return;
-            self.loadingStatus = YBIBImageLoadingStatusNone;
-            [self.delegate yb_imageDownloadFailedForData:self];
+            if (!strongSelf) return;
+            strongSelf.loadingStatus = YBIBImageLoadingStatusNone;
+            [strongSelf.delegate yb_imageDownloadFailedForData:strongSelf];
         }
-        
     }];
-    
 }
-
-
 
 - (void)loadPHAsset {
     if (_freezing) return;
