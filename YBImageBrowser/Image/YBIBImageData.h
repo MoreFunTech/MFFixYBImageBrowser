@@ -25,8 +25,11 @@ typedef UIImage * _Nullable (^YBIBImageBlock)(void);
 /// 修改 NSURLRequest 并返回的闭包
 typedef NSURLRequest * _Nullable (^YBIBRequestModifierBlock)(YBIBImageData *imageData, NSURLRequest *request);
 
-/// QC私有桶解密
+/// QC私有桶解密（同步版本）
 typedef NSString * _Nullable (^YBIBRequestQcDecodeBlock)(NSString *originUrlStr);
+
+/// QC私有桶解密（异步版本，避免阻塞主线程）
+typedef void (^YBIBRequestQcDecodeAsyncBlock)(NSString *originUrlStr, void(^completion)(NSString * _Nullable decodedUrlStr));
 
 /// 根据图片逻辑像素和 scale 判断是否需要预解码的闭包
 typedef BOOL (^YBIBPreDecodeDecisionBlock)(YBIBImageData *imageData, CGSize imageSize, CGFloat scale);
@@ -64,8 +67,11 @@ typedef void (^YBIBImageScrollViewStatusBlock)(YBIBImageData *imageData, UIScrol
 /// 修改 NSURLRequest 并返回
 @property (nonatomic, copy, nullable) YBIBRequestModifierBlock requestModifier;
 
-/// qc私有桶解密
+/// qc私有桶解密（同步版本）
 @property (nonatomic, copy, nullable) YBIBRequestQcDecodeBlock qcDecoder;
+
+/// qc私有桶解密（异步版本，优先使用此方法避免阻塞主线程）
+@property (nonatomic, copy, nullable) YBIBRequestQcDecodeAsyncBlock qcDecoderAsync;
 
 
 /// 相册图片资源
@@ -152,6 +158,11 @@ typedef void (^YBIBImageScrollViewStatusBlock)(YBIBImageData *imageData, UIScrol
  加载数据，一般不需要调用这个方法，当该数据对象做了数据更新时调用
  */
 - (void)loadData;
+
+/**
+ 设置异步版本的 qcDecoder（Swift 友好接口）
+ */
+- (void)setQcDecoderAsyncBlock:(void(^)(NSString *originUrlStr, void(^completion)(NSString * _Nullable decodedUrlStr)))block;
 
 /// 处理后的原始图片
 @property (nonatomic, strong, readonly) UIImage *originImage;

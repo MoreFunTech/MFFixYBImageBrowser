@@ -316,12 +316,25 @@ static dispatch_queue_t YBIBImageProcessingQueue(void) {
 
 
 - (void)loadURL_downloadFailure {
-    if (!self.qcDecoder) {
-        self.loadingStatus = YBIBImageLoadingStatusNone;
-        [self.delegate yb_imageDownloadFailedForData:self];
-    } else {
+    // 优先使用异步版本的 qcDecoder，避免阻塞主线程
+    if (self.qcDecoderAsync) {
+        __weak typeof(self) wSelf = self;
+        self.qcDecoderAsync(self.imageURL.absoluteString, ^(NSString * _Nullable decodedUrlStr) {
+            __strong typeof(wSelf) strongSelf = wSelf;
+            if (!strongSelf) return;
+            if (decodedUrlStr && decodedUrlStr.length > 0) {
+                [strongSelf loadURL_downloadFailureWithQcDecode:decodedUrlStr];
+            } else {
+                strongSelf.loadingStatus = YBIBImageLoadingStatusNone;
+                [strongSelf.delegate yb_imageDownloadFailedForData:strongSelf];
+            }
+        });
+    } else if (self.qcDecoder) {
         NSString *newUrlStr = self.qcDecoder(self.imageURL.absoluteString);
         [self loadURL_downloadFailureWithQcDecode:newUrlStr];
+    } else {
+        self.loadingStatus = YBIBImageLoadingStatusNone;
+        [self.delegate yb_imageDownloadFailedForData:self];
     }
 }
 
@@ -758,6 +771,10 @@ static dispatch_queue_t YBIBImageProcessingQueue(void) {
     CGFloat scale = YBIBLowMemory() ? 0.28 : 0.19;
     _cuttingZoomScale += (imagePixel / self.compressingSize * scale);
     return _cuttingZoomScale;
+}
+
+- (void)setQcDecoderAsyncBlock:(void(^)(NSString *, void(^)(NSString * _Nullable)))block {
+    self.qcDecoderAsync = block;
 }
 
 @end
