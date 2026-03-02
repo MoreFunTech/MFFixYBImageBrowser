@@ -3,11 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 51;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		006818429D384749FFCD240E /* Pods_YBImageBrowserDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97542AA3FE46C41411B15C5D /* Pods_YBImageBrowserDemo.framework */; };
+		14C244042F557EAE00706415 /* YBMarcos.m in Sources */ = {isa = PBXBuildFile; fileRef = 14C244032F557EAE00706415 /* YBMarcos.m */; };
 		23028E1022DD6EB500C745ED /* TestToolViewHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 23028E0F22DD6EB500C745ED /* TestToolViewHandler.m */; };
 		23028E1222DD90EC00C745ED /* localVideo0.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 23028E1122DD90EC00C745ED /* localVideo0.mp4 */; };
 		2303ADBB22D624260001A176 /* YBImageBrowserVideo.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 2303ADBA22D624250001A176 /* YBImageBrowserVideo.bundle */; };
@@ -90,6 +91,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		14C244022F557EAE00706415 /* YBMarcos.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = YBMarcos.h; sourceTree = "<group>"; };
+		14C244032F557EAE00706415 /* YBMarcos.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = YBMarcos.m; sourceTree = "<group>"; };
 		23028E0E22DD6EB500C745ED /* TestToolViewHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TestToolViewHandler.h; sourceTree = "<group>"; };
 		23028E0F22DD6EB500C745ED /* TestToolViewHandler.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TestToolViewHandler.m; sourceTree = "<group>"; };
 		23028E1122DD90EC00C745ED /* localVideo0.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = localVideo0.mp4; sourceTree = "<group>"; };
@@ -263,6 +266,8 @@
 				23ABA27322D0BAB600535F6A /* Base */,
 				23ABA2A522D0BAB600535F6A /* YBImageBrowser.h */,
 				23ABA2A622D0BAB600535F6A /* YBImageBrowser.m */,
+				14C244022F557EAE00706415 /* YBMarcos.h */,
+				14C244032F557EAE00706415 /* YBMarcos.m */,
 			);
 			path = YBImageBrowser;
 			sourceTree = SOURCE_ROOT;
@@ -763,6 +768,7 @@
 				23ABA2AD22D0BAB700535F6A /* YBIBDataMediator.m in Sources */,
 				23ABA2C522D0CAD100535F6A /* YBIBSheetView.m in Sources */,
 				2325B19823AA345F00FF76E3 /* BaseListController.m in Sources */,
+				14C244042F557EAE00706415 /* YBMarcos.m in Sources */,
 				23ABA2B722D0BAB700535F6A /* YBIBImageData.m in Sources */,
 				23F26AD222D7208700C27C21 /* YBIBVideoActionBar.m in Sources */,
 				23F26ACC22D71FB200C27C21 /* YBIBVideoView.m in Sources */,
