@@ -23,8 +23,20 @@
 @property (nonatomic, strong) YBIBScreenRotationHandler *rotationHandler;
 @end
 
+static NSString *_yb_waterImageName = nil;
+
 @implementation YBImageBrowser {
     BOOL _originStatusBarHidden;
+}
+
+#pragma mark - water image config
+
++ (NSString *)yb_waterImageName {
+    return _yb_waterImageName.length > 0 ? _yb_waterImageName : @"";
+}
+
++ (void)yb_setWaterImageName:(NSString *)name {
+    _yb_waterImageName = [name copy];
 }
 
 #pragma mark - life cycle

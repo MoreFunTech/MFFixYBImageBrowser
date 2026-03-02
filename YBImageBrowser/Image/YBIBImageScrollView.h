@@ -25,6 +25,8 @@ typedef NS_ENUM(NSInteger, YBIBScrollImageType) {
 
 @property (nonatomic, assign) YBIBScrollImageType imageType;
 
+@property (nonatomic, copy) NSString *userNick;
+
 - (void)reset;
 
 @end

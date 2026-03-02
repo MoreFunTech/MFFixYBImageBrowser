@@ -12,11 +12,16 @@
 #import "YBIBVideoTopBar.h"
 #import "YBIBUtilities.h"
 #import "YBIBIconManager.h"
+#import "YBMarcos.h"
+#import "YBImageBrowser.h"
 
 @interface YBIBVideoView () <YBIBVideoActionBarDelegate>
 @property (nonatomic, strong) YBIBVideoTopBar *topBar;
 @property (nonatomic, strong) YBIBVideoActionBar *actionBar;
 @property (nonatomic, strong) UIButton *playButton;
+@property (nonatomic, strong) UIImageView *waterImageView;
+@property (nonatomic, strong) UILabel *waterText;
+@property (nonatomic, strong) UIView *waterTextBG;
 @end
 
 @implementation YBIBVideoView {
@@ -45,10 +50,45 @@
         [self addSubview:self.playButton];
         [self addObserverForSystem];
         
+        [self addSubview:self.waterImageView];
+        self.waterImageView.frame = CGRectMake(kScreenWidth - kSize(63) - kSize(10), -kSize(20), kSize(63), kSize(20));
+        [self addSubview:self.waterTextBG];
+        [self addSubview:self.waterText];
+        self.waterTextBG.hidden = YES;
+        
+        [kNotificationCenter addObserver:self selector:@selector(noti_refreshWaterNick:) name:@"kNotificationScanUserMedia" object:nil];
+        
         _tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(respondsToTapGesture:)];
         [self addGestureRecognizer:_tapGesture];
     }
     return self;
+}
+
+- (void)noti_refreshWaterNick:(NSNotification *)notice {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if ([notice.object isKindOfClass:[NSString class]]) {
+            NSString *nick = notice.object;
+            if (nick.isNotBlank) {
+                self.waterText.text = [NSString stringWithFormat:@"@%@", nick];
+                self.waterTextBG.hidden = NO;
+                self.userName = nick;
+            } else {
+                self.waterText.text = @"";
+                self.waterTextBG.hidden = YES;
+                self.userName = @"";
+            }
+        } else {
+            self.waterText.text = @"";
+            self.waterTextBG.hidden = YES;
+            self.userName = @"";
+        }
+        
+        self.waterImageView.image = [UIImage imageNamed:[YBImageBrowser yb_waterImageName]];
+        if (self.userName.isNotBlank) {
+            self.waterText.text = [NSString stringWithFormat:@"@%@", self.userName];
+            self.waterTextBG.hidden = NO;
+        }
+    });
 }
 
 - (void)initValue {
@@ -69,6 +109,8 @@
     self.actionBar.frame = CGRectMake(padding.left, height - [YBIBVideoActionBar defaultHeight] - padding.bottom - 10, width, [YBIBVideoActionBar defaultHeight]);
     self.playButton.center = CGPointMake(containerSize.width / 2.0, containerSize.height / 2.0);
     _playerLayer.frame = (CGRect){CGPointZero, containerSize};
+    
+    self.waterImageView.image = [UIImage imageNamed:[YBImageBrowser yb_waterImageName]];
 }
 
 - (void)reset {
@@ -126,11 +168,33 @@
         _playerLayer = [AVPlayerLayer playerLayerWithPlayer:_player];
         _playerLayer.frame = (CGRect){CGPointZero, [self.delegate yb_containerSizeForVideoView:self]};
         [self.layer insertSublayer:_playerLayer above:self.thumbImageView.layer];
-        
+        _waterImageView.top = self.thumbImageView.bottom - kSize(8) - kSize(20);
         [self addObserverForPlayer];
     } else {
         [self videoJumpWithScale:0];
     }
+    
+    if (self.userName.isNotBlank) {
+        self.waterText.text = [NSString stringWithFormat:@"@%@", self.userName];
+        self.waterTextBG.hidden = NO;
+    }
+    
+    _waterImageView.top = self.thumbImageView.bottom - kSize(8) - kSize(20);
+    CGFloat width = [self.waterText.text sizeForFont:self.waterText.font size:CGSizeMake(MAXFLOAT, kSize(34)) mode:(NSLineBreakByWordWrapping)].width;
+    self.waterText.frame = CGRectMake(kSize(16) + kSize(10), self.waterImageView.top, width + kSize(4), self.waterImageView.height);
+    self.waterTextBG.frame = CGRectMake(self.waterText.left - kSize(10), self.waterText.top, self.waterText.width + kSize(20), self.waterText.height);
+}
+
+- (void)setPlaceHolder {
+    if (self.userName.isNotBlank) {
+        self.waterText.text = [NSString stringWithFormat:@"@%@", self.userName];
+        self.waterTextBG.hidden = NO;
+    }
+    
+    _waterImageView.top = self.thumbImageView.bottom - kSize(8) - kSize(20);
+    CGFloat width = [self.waterText.text sizeForFont:self.waterText.font size:CGSizeMake(MAXFLOAT, kSize(34)) mode:(NSLineBreakByWordWrapping)].width;
+    self.waterText.frame = CGRectMake(kSize(16) + kSize(10), self.waterImageView.top, width + kSize(4), self.waterImageView.height);
+    self.waterTextBG.frame = CGRectMake(self.waterText.left - kSize(10), self.waterText.top, self.waterText.width + kSize(20), self.waterText.height);
 }
 
 - (void)startPlay {
@@ -389,6 +453,35 @@
         _thumbImageView.layer.masksToBounds = YES;
     }
     return _thumbImageView;
+}
+
+- (UIImageView *)waterImageView {
+    if (!_waterImageView) {
+        _waterImageView = [[UIImageView alloc] init];
+        _waterImageView.contentMode = UIViewContentModeScaleAspectFit;
+    }
+    return _waterImageView;
+}
+
+- (UILabel *)waterText {
+    if (!_waterText) {
+        _waterText = [[UILabel alloc] init];
+        _waterText.textColor = [UIColor colorWithHexString:@"#FFFFFF"];
+        _waterText.font = kSemiboldFont(kSize(14));
+        [_waterText setAlpha:0];
+    }
+    return _waterText;
+}
+
+- (UIView *)waterTextBG {
+    if (!_waterTextBG) {
+        _waterTextBG = [[UIView alloc] init];
+        _waterTextBG.clipsToBounds = YES;
+        _waterTextBG.layer.cornerRadius = kSize(17);
+        _waterTextBG.backgroundColor = [UIColor colorWithWhite:0 alpha:0.2];
+        [_waterTextBG setAlpha:0];
+    }
+    return _waterTextBG;
 }
 
 @end

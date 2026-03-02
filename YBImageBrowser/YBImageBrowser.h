@@ -21,6 +21,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface YBImageBrowser : UIView
 
+/// 水印图片资源名，可由主项目通过 yb_setWaterImageName: 设置，未设置时默认 @“”
++ (NSString *)yb_waterImageName;
++ (void)yb_setWaterImageName:(nullable NSString *)name;
+
 /// 数据源数组
 @property (nonatomic, copy) NSArray<id<YBIBDataProtocol>> *dataSourceArray;
 

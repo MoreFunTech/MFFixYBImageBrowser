@@ -63,6 +63,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)hidePlayButton;
 
 - (void)preparPlay;
+- (void)setPlaceHolder;
+
 
 @property (nonatomic, assign) BOOL needAutoPlay;
 
@@ -70,6 +72,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong, readonly) YBIBVideoTopBar *topBar;
 @property (nonatomic, strong, readonly) YBIBVideoActionBar *actionBar;
+@property (nonatomic, copy) NSString *userName;
 
 @end
 
